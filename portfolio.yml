@@ -5,4 +5,4 @@ summary: After 30 years of falling road deaths, fatalities have risen every year
 headline_metric: "94% of the post-2020 rise came from pedestrians, motorcyclists and cyclists"
 skills: [R, tidyverse, ggplot2, plotly, Shiny, Quarto, Data storytelling]
 image: figures/01_national_trend.png
-demo: https://nani4577.shinyapps.io/DataVisualisation/
+demo: https://satish2001.shinyapps.io/road_fatalities_dashboard/

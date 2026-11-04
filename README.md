@@ -4,7 +4,7 @@
 
 R · tidyverse · ggplot2 · plotly · Shiny · Quarto · Data storytelling
 
-**[Live interactive dashboard](https://nani4577.shinyapps.io/DataVisualisation/)** · [Full data story (PDF)](docs/data_story.pdf) · [Design decisions (PDF)](docs/design_and_construction.pdf) · [Code](R/road_fatalities_story.qmd)
+**[Live interactive dashboard](https://satish2001.shinyapps.io/road_fatalities_dashboard/)** · [Full data story (PDF)](docs/data_story.pdf) · [Design decisions (PDF)](docs/design_and_construction.pdf) · [Code](R/road_fatalities_story.qmd)
 
 ![National trend](figures/01_national_trend.png)
 
@@ -43,7 +43,7 @@ Each graphic answers one question and raises the next.
 
 A Shiny dashboard lets anyone filter by road user, state and year range: five linked interactive charts and three live summary boxes.
 
-**[Open the live dashboard](https://nani4577.shinyapps.io/DataVisualisation/)**
+**[Open the live dashboard](https://satish2001.shinyapps.io/road_fatalities_dashboard/)**
 
 ![Dashboard](figures/dashboard.png)
 
