@@ -5,7 +5,7 @@ This project uses the **Australian Road Deaths Database (ARDD)**, fatalities fil
 1. Download the latest *fatalities* file (`bitre_fatalities_<month><year>.xlsx`) from
    https://www.bitre.gov.au/statistics/safety/fatal_road_crash_database
 2. Save it in this folder.
-3. Set `DATA_FILE` at the top of `R/01_data_story.R` if the name differs.
+3. Name it `bitre_fatalities_feb2026.xlsx`, or change the `read_excel()` line near the top of `R/road_fatalities_story.qmd`.
 
 The analysis in this repo used the **February 2026** release. The raw file isn't committed because BITRE updates it monthly; the script always reads whichever release you download.
 

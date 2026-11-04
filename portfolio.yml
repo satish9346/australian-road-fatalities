@@ -1,8 +1,8 @@
-title: Australian road fatalities data story
-status: in-progress
+title: "Has Australia's road safety success ended?"
+status: complete
 date: 2026-10
-summary: Ten linked graphics on 35+ years of Australian road deaths, from the national trend down to who dies, when, and in which speed zones.
-headline_metric: "Generated from data: see figures/findings.md"
-skills: [R, tidyverse, ggplot2, plotly, Data visualisation, Data storytelling]
-image: figures/g05_day_time_heatmap.png
-demo: figures/g05_heatmap_interactive.html
+summary: After 30 years of falling road deaths, fatalities have risen every year since 2020. A data story on who, where and why, with a live Shiny dashboard.
+headline_metric: "94% of the post-2020 rise came from pedestrians, motorcyclists and cyclists"
+skills: [R, tidyverse, ggplot2, plotly, Shiny, Quarto, Data storytelling]
+image: figures/01_national_trend.png
+demo: https://nani4577.shinyapps.io/DataVisualisation/

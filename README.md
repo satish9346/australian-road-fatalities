@@ -1,65 +1,75 @@
-# Australian road fatalities: a data story
+# Has Australia's road safety success ended?
 
-**When, where and to whom do road deaths happen in Australia, and what does that say about where prevention should focus?**
+**For 30 years Australia's road deaths fell. Since 2020 they have risen every year. This data story asks who is dying, where, and why.**
 
-Ten linked graphics built in R from the national road deaths database. Each chart answers one question and raises the next, moving from the national trend down to the people, times and road environments most at risk.
+R · tidyverse · ggplot2 · plotly · Shiny · Quarto · Data storytelling
 
-R · tidyverse · ggplot2 · plotly · Data visualisation and storytelling
+**[Live interactive dashboard](https://nani4577.shinyapps.io/DataVisualisation/)** · [Full data story (PDF)](docs/data_story.pdf) · [Design decisions (PDF)](docs/design_and_construction.pdf) · [Code](R/road_fatalities_story.qmd)
+
+![National trend](figures/01_national_trend.png)
 
 ---
 
-## The story in ten graphics
+## Key findings
 
-| # | Question | Chart | Leads to |
-|---|---|---|---|
-| G1 | Are road deaths still falling? | Line, yearly trend | Where do they happen? |
-| G2 | Which states record the most deaths? | Bar | Who is dying? |
-| G3 | Which road users are most affected? | Bar | When do deaths happen? |
-| G4 | Which time of day is deadliest? | Bar | Which day-and-time combinations? |
-| G5 | Which day and time combinations are riskiest? | Heatmap | Does this change by season? |
-| G6 | Does the weekly pattern change with the season? | Faceted heatmap | How do these crashes happen? |
-| G7 | Single or multiple vehicles, by time of day? | 100% stacked bar | Who, in more detail? |
-| G8 | How do age and gender differ? | Notched boxplot | Does the road environment matter? |
-| G9 | How do age and speed zone differ by road user? | Faceted jitter | Where do age and speed combine? |
-| G10 | Which age band and speed zone hold the most deaths? | Bubble grid | Conclusion |
+| # | Finding |
+|---|---|
+| 1 | **The trend reversed in 2020.** Road deaths fell from 2,716 in 1989 to 1,091 in 2020, then rose every year to 1,248 in 2025. |
+| 2 | **The rise is almost entirely vulnerable road users.** Since 2020, motorcyclist deaths rose about 40%, pedestrians 38% and pedal cyclists 14%, while drivers and passengers together rose 3%. **94% of the increase** came from vulnerable road users. |
+| 3 | **Remote states carry the highest risk per person.** The Northern Territory records about 14.3 deaths per 100,000 people, seven times the ACT (1.9) and well above the national 4.3. NSW has the most deaths in raw numbers but is among the safest per person. |
+| 4 | **Weekend nights are the most dangerous time to travel,** in every season, and most of all in summer. |
+| 5 | **Speed zones affect road users differently.** Pedestrians and cyclists die mostly in low-speed (≤ 50 km/h) urban zones; drivers and passengers take about half of the deaths on 100–110 km/h highways. |
+| 6 | **Night deaths are mostly single-vehicle crashes;** mornings and afternoons are dominated by multi-vehicle crashes. |
+| 7 | **Young to middle-aged men** are the most affected group. |
 
-Every chart title and every number in the findings is calculated from the data when the script runs, so the story stays correct as BITRE releases new months.
+**What it means:** Australia's road safety gains were built around people inside vehicles (seatbelts, airbags, ABS, safer cars). The people left behind are those outside them. The next gains will come from low-speed urban zones and weekend nights, where pedestrians, motorcyclists and cyclists are most at risk.
 
-## Findings
+## The story in eight graphics
 
-Generated in [`figures/findings.md`](figures/findings.md) by the script.
+Each graphic answers one question and raises the next.
+
+| Section | Question | Graphic |
+|---|---|---|
+| 1. The trend | Has the three-decade success ended? | ![](figures/01_national_trend.png) |
+| | Which road users are driving the reversal? | ![](figures/02_road_user_trend.png) |
+| | How big is the change for each group? | ![](figures/03_change_by_road_user.png) |
+| 2. When and where | Which states carry the highest risk per person? | ![](figures/04_state_rate.png) |
+| | Which days and times are riskiest, and does it change by season? | ![](figures/05_day_time_season.png) |
+| | Which speed zones are dangerous for whom? | ![](figures/06_speed_zone_road_user.png) |
+| 3. Who | Which crash types dominate at which times? | ![](figures/07_crash_type_time.png) |
+| | Which age and gender groups are most affected? | ![](figures/08_age_gender.png) |
+
+## Interactive dashboard
+
+A Shiny dashboard lets anyone filter by road user, state and year range: five linked interactive charts and three live summary boxes.
+
+**[Open the live dashboard](https://nani4577.shinyapps.io/DataVisualisation/)**
+
+![Dashboard](figures/dashboard.png)
 
 ## Design choices
 
-- **One colour language across all ten charts.** Red always marks the group or period being called out; dark slate is everything else.
-- **Rates, not just counts, where it matters.** G7 shows shares within each time period so periods with more traffic don't dominate.
-- **Clutter control.** G9 samples 4,000 of 50,000+ records and jitters them, so the distribution is visible instead of a solid block.
-- **Missing data handled explicitly.** BITRE codes unknowns as `-9` or `Unknown`; both become `NA` and each chart drops only the fields it needs.
-- **Interactive versions** of the trend (G1) and the day-time heatmap (G5) for the portfolio, with hover values.
+- **One story, not a data dump.** A first draft had ten graphics covering every variable; it was repetitive. It was cut to eight, each of which adds something new, split into three sections (trend, when and where, who).
+- **Fair comparisons.** States are compared per 100,000 people, not by raw counts, which mostly reflect population.
+- **Focus on the break point.** 2020 is where the trend turned, so later graphics focus on the reversal period rather than all 37 years.
+- **Written for the public.** Plain titles phrased as questions, with the answer in the subtitle, so a non-technical reader can follow the story.
 
 ## How to run
 
-1. Download the latest ARDD fatalities file into `data/` (see [`data/README.md`](data/README.md)).
+1. Download the ARDD fatalities file into `data/` (see [`data/README.md`](data/README.md)).
 2. Open `australian-road-fatalities.Rproj` in RStudio.
-3. Run `source("R/01_data_story.R")`. Missing packages install automatically.
+3. Open `R/road_fatalities_story.qmd` and click **Render**.
 
-Charts, the two interactive HTML charts and `findings.md` are written to `figures/`.
+## Data
+
+Bureau of Infrastructure and Transport Research Economics (BITRE), **Australian Road Deaths Database**, February 2026 release, CC BY 4.0. Every road death in Australia since 1989.
 
 ## Limitations
 
-- **Counts, not risk.** Deaths aren't adjusted for population or distance travelled, so states and time periods with more traffic show more deaths. Exposure-adjusted rates are the planned next step.
-- **Time of day is grouped into six-hour blocks**, which hides peaks inside each block.
-- **Speed limit is the posted limit**, not the speed travelled.
-
-## Next steps
-
-- Per-capita and per-kilometre-travelled rates by state (ABS population, BITRE vehicle kilometres travelled)
-- An interactive dashboard with state and year filters
-- Holiday-period effects (Christmas and Easter flags are already in the data)
+- Death counts aren't adjusted for distance travelled, so busy roads and times show more deaths partly because more people use them.
+- The reasons suggested for patterns (visibility, speed, remoteness) are interpretations; the data shows where deaths happen, not why.
 
 ## About
 
 Built by **Satish Kumar Reddy Gajjala** for Data Visualisation (MATH X314), Master of Data Science, University of Adelaide.
 [LinkedIn](https://www.linkedin.com/in/satish-reddy-gajjala-450150234/) · [GitHub](https://github.com/satish9346)
-
-Data: Bureau of Infrastructure and Transport Research Economics (BITRE), Australian Road Deaths Database, CC BY 4.0.

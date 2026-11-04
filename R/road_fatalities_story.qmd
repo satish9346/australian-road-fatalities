@@ -1,0 +1,581 @@
+---
+title: "Has Australia's three-decade road safety success ended?"
+author: "Satish Kumar Reddy Gajjala"
+format: html
+editor: visual
+---
+
+### MATH X314 Data Visualisation
+
+### Assessment 4B Annotated Code Submission
+
+## Has Australia's Three decade Road success ended? The reversal story – who, where and why?
+
+## Section-1
+
+### Introduction
+
+The document is created to record the annotated code of Australia's road fatalities project \### 1.Loading Packages
+
+```{r}
+
+# Loading the packages
+library(readxl)
+library(scales)
+library(tidyverse)
+library(plotly)
+library(crosstalk)
+```
+
+### 2.Loading the Dataset
+
+```{r}
+#Loading the Excel data
+raw_data <- read_excel("../data/bitre_fatalities_feb2026.xlsx", skip = 3)
+```
+
+### 3.Data understanding
+
+```{r}
+head(raw_data,10)
+```
+
+```{r}
+ardd<-raw_data
+```
+
+```{r}
+#checking names of the dataset
+names(ardd)
+#checking dimensions of the dataset
+dim(ardd)
+#checking the structure of the database
+str(ardd)
+```
+
+### 4. Data Cleaning
+
+```{r}
+ardd[ardd==-9]<-NA
+ardd
+```
+
+```{R}
+head(ardd,10)
+```
+
+```{r}
+#checking the count of -9 Values in each column after replacing with NA
+colSums(ardd==-9)
+```
+
+```{r}
+#checking the count Unknown values using colSums
+colSums(ardd=='Unknown')
+
+```
+
+```{r}
+#replacing unknown values with NA
+ardd[ardd=='Unknown']<-NA
+```
+
+```{r}
+#checking the count Unknown values using colSums after replacing with NA
+colSums(ardd=='Unknown')
+```
+
+```{r}
+#Converting the required columns to numeric 
+ardd$Age<-as.numeric(ardd$Age)
+ardd$Year<-as.numeric(ardd$Year)
+ardd$Month<-as.numeric(ardd$Month)
+ardd$`Speed Limit`<-as.numeric(ardd$`Speed Limit`)
+```
+
+```{r}
+#trimming the spaces of text columns
+ardd$State<-trimws(ardd$State)
+ardd$Gender<-trimws(ardd$Gender)
+ardd$Dayweek<-trimws(ardd$Dayweek)
+ardd$`Road User`<-trimws(ardd$`Road User`)
+ardd$`Crash Type` <- trimws(ardd$`Crash Type`)
+
+```
+
+### 5. Data conversion
+
+```{r}
+# creating Time vcategory categorical variable from time
+ardd<-ardd%>%
+  mutate(
+   Time=trimws(Time),
+   Hour=suppressWarnings(as.numeric(substr(Time,1,2))),
+   Time_Category = case_when(
+      Hour >=5 & Hour <12 ~ "Morning",
+      Hour >=12 & Hour < 17 ~ "Afternoon",
+      Hour >= 17 & Hour < 21 ~ "Evening",
+      Hour >= 21 | Hour < 5  ~ "Night",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+```{r}
+# creating seaon column using months
+ardd <- ardd %>%
+  mutate(
+    Season = case_when(
+      Month %in% c(12, 1, 2) ~ "Summer",
+      Month %in% c(3, 4, 5) ~ "Autumn",
+      Month %in% c(6, 7, 8) ~ "Winter",
+      Month %in% c(9, 10, 11) ~ "Spring",
+      TRUE ~ NA_character_
+    )
+  )
+# cleaning the null values
+clean_ardd<-ardd %>%
+  filter(
+    !is.na(Time_Category),
+    !is.na(Season),
+    !is.na(Dayweek),
+    !is.na(`Speed Limit`)
+  )
+clean_ardd$Dayweek<-factor(    # changing Dayweek to factor to maintain correct order
+  clean_ardd$Dayweek,
+  levels=c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
+)
+clean_ardd$Time_Category<-factor(   # changing Time_Category to factor to maintain correct order
+  clean_ardd$Time_Category,
+  levels=c("Morning", "Afternoon", "Evening", "Night")
+)
+clean_ardd$Season<-factor(      #Season toits factore to maintain order correctly in plots
+  clean_ardd$Season,
+  levels=c("Summer", "Autumn","Winter","Spring")
+)
+```
+
+## Section-2
+
+## 1. Line Graph
+
+### Road fatalities in Australia from 1989-2025
+
+```{r}
+# Line graph for year-wise trend   
+library(scales)                                                             # loading scales library
+year_fatalities_trend <- clean_ardd %>%
+  filter(!is.na(Year), Year<2026) %>%      # Filtering the data with year less than 2026
+  count(Year)                                                               # counting the fatalities based on year
+
+
+p1 <- ggplot(year_fatalities_trend,aes(x=Year, y=n,
+                                       text=paste("Year:", Year,
+                                                  "\nFatalities:", scales::comma(n))))+                             # plotting the graph
+  geom_line(aes(group=1), color='#2c3e50',linewidth = 1.5)+                               # choosing line color
+  geom_point(color='#e74c3c',size=2.3)+                                     # choosing the point color
+  geom_vline(xintercept=2020, linetype="dashed", color="grey60")+           # plotting the line on break point to diffrentiate
+    labs(
+      title="Has Australia's three decade road safety ended?",
+      x="Year",
+      y="Number of fatalities",
+      caption = "Source: ARDD, Feb 2026"
+    )+
+    scale_y_continuous(labels=comma)+                                    # Format y axis labels
+    scale_x_continuous(breaks=seq(1990,2025, by=5))+                     # Arranging x-axis years from 1990 to 2025 by 5 years gap in between 
+    theme_minimal(base_size = 13)+
+    theme(
+    plot.title        = element_text(face = "bold", size=14),                   # Titile text is setting to bold, and size to 14   
+    plot.subtitle     = element_text(color = "grey30", size=8),                 # subtitle text colour to grey
+    plot.caption        = element_text(color="grey45",face = "italic", size=8), # Titile text is setting to bold
+    panel.grid.major.y= element_blank()                                         # removing grid lines to make it clear
+    )
+
+p1_interactive  <- ggplotly(p1, tooltip='text') %>%
+  layout(
+    annotations=list(
+      list(x=1989,                                                              # To highlight the starting point
+           y=year_fatalities_trend$n[year_fatalities_trend$Year ==1989],
+           text=scales::comma(year_fatalities_trend$n[year_fatalities_trend$Year==1989]),
+           showarrow= FALSE,
+           yshift=20,
+           font=list(size=12,color="#2c3e50")),
+      
+      
+      list(x=2020,
+           y=year_fatalities_trend$n[year_fatalities_trend$Year ==2020],        # to hightlight the start point of reversal trending
+           text=scales::comma(year_fatalities_trend$n[year_fatalities_trend$Year==2020]),
+           showarrow= FALSE,
+           yshift=20,
+           font=list(size=12,color="#2c3e50")),
+      
+      
+      list(x=2025,                                                            # To highlight ending year Ending
+           y=year_fatalities_trend$n[year_fatalities_trend$Year ==2025],
+           text=scales::comma(year_fatalities_trend$n[year_fatalities_trend$Year==2025]),
+           showarrow= FALSE,
+           yshift=20,
+           font=list(size=12,color="#2c3e50"))
+    ),
+    shapes = list(
+
+      list(type="line",
+          x0 =2020, x1=2020,
+          y0=0, y1=1,
+          yref= "paper",
+          line = list(color = "grey60", dash= "dash", width=1)) 
+      ),
+    xaxis = list(
+      
+      dtick=5,
+      tick0=1990,
+      rangeslider=list(visible =TRUE, thickness=0.1)
+    )
+      
+    
+  )
+p1_interactive
+
+  
+
+```
+
+## 2. Multi Line Graph
+
+### Splitting the road fatalities by road user's
+
+```{r}
+# road fatalities trend split by road users
+road_user_counts <- clean_ardd %>%
+  filter(!is.na(`Road User`),
+         Year >= 2010, Year <= 2025) %>%
+  count(Year,`Road User`)
+shared_road_user<- SharedData$new(road_user_counts, key = ~`Road User`)  #shared data creation with key as road user
+p2  <- ggplot(shared_road_user, aes(x = Year, y = n, color =`Road User`, 
+                                    group=`Road User`,
+                                    text=paste("Road User:",`Road User`,
+                                              "\nYear:", Year,
+                                              "\nFatalities:", scales::comma(n))))+
+  geom_line(linewidth = 1)+
+  geom_point(size = 1.6)+
+  
+  labs(
+    title    = "which road user's are affecting more in reversal trend",
+    x        ='Year',
+    y        ='Number of fatalities',
+    caption  = "Source: ARDD, Feb 2026",
+     )+
+  theme_minimal(base_size = 13)+
+  theme(
+    plot.title          = element_text(face = "bold", size=14),    #Titile text is setting to bold
+
+    plot.caption        = element_text(face = "italic", size=8),     #Titile text is setting to bold
+    panel.grid.major.x  = element_blank())                         # removing grid lines to make it clear'
+    
+bscols(
+  widths = c(3,9),
+  filter_select("road user", "Select Road User:", shared_road_user, ~`Road User`, multiple =TRUE),
+  ggplotly(p2, tooltip='text')
+   
+)
+
+
+```
+
+## 3. Horizontal Bar Graph
+
+### Percentage increase in deaths by road user's from 1989 -2025
+
+```{r}
+# Incremnt of road user fatalities since 2020 in Australia
+change_counts <- clean_ardd %>%                                              # Filtering the rows using year and road user                      
+  filter(!is.na(`Road User`),
+         Year %in% c(2020, 2025)) %>%
+  count(Year, `Road User`) %>%
+  pivot_wider(names_from = Year, values_from = n, names_prefix ='y')%>%     # converts the data from long format to short 
+  mutate(pte = (y2025/y2020-1)*100)                                         # calculate the percentage increment of road user fatalities from 2020 to2025
+p3  <- ggplot(change_counts, aes(x = reorder(`Road User`,pte), y = pte, fill =`Road User`,
+                                 text = paste("Road User:", `Road User`,
+                                              "\n Deaths in 2020:", scales::comma(y2020),
+                                              "\n Deaths in 2025:", scales::comma(y2025),
+                                              "\n percentage change:",paste0("+", round(pte),"%"))))+ # ploting the bar graph and placing bars based on order
+  geom_col(width = 0.8)+
+  geom_text(aes(label = paste0("+", round(pte),"%")), hjust= -0.1, fontface= "bold", size= 3.5)+  # creating the labels for percentage change
+  coord_flip()+                                                                                # flipping the coordinates for better visual
+  scale_y_continuous(limits=c(0,55))+                                                         # setting the limits on y-axis
+  
+  labs(
+    title              =  "How big is the change in vulnerable users?",
+    subtitle           =  "Pedestrian and Motor cyclist fatalities nearly rose 40%",
+    x                  =  'Road User',
+    y                  =  'Percentage change (%)',
+    caption            =  "Source: ARDD, Feb 2026",
+     )+
+  theme_minimal(base_size=13)+
+  theme(
+    plot.title         = element_text(face = "bold", size=14),      #Titile text is setting to bold
+    plot.subtitle      = element_text(color = "grey30", size=8),    # subtitle text colour to grey
+    plot.caption       = element_text(color='grey50', face = "italic", size=8),     #Titile text is setting to bold
+    panel.grid.major.x = element_blank(),                           # removing grid lines to make it clear
+    legend.position    = "none"
+   
+    )
+ggplotly(p3, tooltip='text')
+
+```
+
+## 4. Lollipop Chart
+
+### Distribution of Road Fatalities by states per 100,000 people
+
+```{r}
+# lollipop_chart- Road fatalities across different states in australia per 1,00,000 people
+population_2024 <- tibble(                                                     # creating one table with staes and population using tibble()
+  State = c("NSW","VIC","QLD", "WA", "SA","TAS", "ACT", "NT"),
+  pop_states = c(8350000,6950000,5560000,2950000, 1880000,575000,475000, 255000)
+)
+
+state_fatalities <- clean_ardd%>%                                            # Filtering the data with year
+  filter(!is.na(State), Year >= 2021, Year <= 2025)%>%
+  count(State) %>%                                                           # counting the fatalities based on year
+  left_join(population_2024, by="State") %>%                                 # joing population column to the repective states
+   mutate(r = (n/5)/pop_states*100000)                                       # claculating the death per 1,00,000 people
+p4  <- ggplot(state_fatalities, aes(x = reorder(State,r), y=r,
+                                    text= paste("State:", State,
+                                    "\nDeaths (5 years):", scales::comma(n),
+                                    "\nDeaths per year:", round(n/5),
+                                    "\nPopulation:", round(n/5),
+                                    "\nDeaths per 100k people:", round(r,1))))+
+                                                                              #ordering the bars based on highest - lowest
+  geom_segment(aes(xend= State,yend=0),
+               color='green', linewidth = 1)+                                 #plotting the lollipop chart using geom_segment and geom_point
+  geom_point(color="red", size=5)+
+  
+  geom_text(                                                                  # adding the labels to the segments
+  aes(label=round(r,1)),
+    size=3.5,
+    hjust=-0.3,
+    fontface="bold"
+  )+
+  labs(
+    title    = "How do states split the road fatalities in reversal trend?",
+    subtitle = 'Remote and regional states have higher deaths per 100,000 people',
+    x        ='State',
+    y        ='Number of fatalities per 100,000 people  ',
+    caption  = "Source: ARDD, Feb 2026",
+ 
+     )+
+  theme_minimal(base_size = 13)+
+  theme(
+    plot.title        = element_text(face = "bold", size=14),         # Titile text is setting to bold
+    plot.subtitle     = element_text(color = "grey30", size=8),       # subtitle text colour to grey
+    plot.caption        = element_text(face = "bold", size=8),        # Titile text is setting to bold
+    panel.grid.major.y= element_blank(),                              # removing grid lines to make it clear
+    
+    )
+ggplotly(p4, tooltip="text")
+  
+  
+  
+```
+
+## 5. Heat Map
+
+### Distribution of Road fatalities by Days and Times across seasons
+
+```{r}
+#Heatmap plot using DayWeek,TimeCategory and season 
+ardd_heatmap<-clean_ardd%>%
+  filter(!is.na(Time_Category),       #Removing Null values using filter
+         !is.na(Dayweek),
+         !is.na(Season))%>%
+  count(Dayweek, Time_Category,Season)
+shared_season  <- SharedData$new(ardd_heatmap, key= ~Season)
+p5  <- ggplot(shared_season, aes(x=Dayweek,
+                       y=Time_Category,
+                       fill=n,
+                       text = paste("Day:", Dayweek,
+                                    "\nTime:", Time_Category,
+                                    "\nSeason:", Season,
+                                    "\nFatalities:",n)))+
+                       
+      geom_tile(color="white")+                                                     # creates tiles in heatmap
+      facet_wrap(~ Season) +                                                        # creates heatmap seperately for diffrent seasons
+      scale_fill_gradient(                                                          # filling color density on fatalities frequency
+        low="#fee5d9",
+        high='#a50f15'
+      )+
+      labs(
+        title = "Does temporal patterns changed over seasons?",
+        subtitle = "The darkness of color represents represents frequency of road fatalities",
+        x        ="Day of the Week",
+        y        ="Time of the day",
+        fill     ="No of fatalities",
+        caption  = "Source: ARDD, Feb 2026",
+        
+    )+
+      theme_minimal(
+        base_size=13,
+    )+
+     theme(
+       plot.title=element_text(face= "bold"),                  # Title text to bold to highlight the title
+       plot.subtitle =element_text(color = 'grey35'),          # color of subtitle is changed to grey to differentiate,
+       panel.grid=element_blank(),                             # Removing grid lines
+       axis.text.x=element_text(angle=40,hjust=1)              # Angle of the x-axis text changed to 40, to avoid overlap
+       )
+     bscols(
+       widths = c(3,9),
+       filter_select("season_filter", "Select season:", shared_season,
+                     ~Season, multiple = TRUE),
+       ggplotly(p5, tooltip ="text")
+     )
+```
+
+## 6. Stacked Bar Graph
+
+### Road User Fatalities across Different Speed Zones
+
+```{r}
+
+# percentage of Road user fatalities across different speed zones
+age_speed_data <- clean_ardd %>%                                                                    # Filtering the data using speed limit
+  filter(!is.na(`Speed Limit`),!is.na(`Road User`),
+         `Speed Limit`>=10, `Speed Limit`<=130) %>%
+  mutate(speedzones=case_when(                                                                      # creating the speed zones
+    `Speed Limit`<=50 ~"<=50 (urban)",
+    `Speed Limit`<=60 ~"60 (suburb)",
+    `Speed Limit`<=80 ~"70-80 (semi-rural)",
+    `Speed Limit`<=110 ~"100-110 (rural)",
+    TRUE               ~"110+ (Highway)"
+  )) 
+  
+age_speed_data$speedzones <- factor(age_speed_data$speedzones,                                       # changing speed zones into categories using categories
+                                    levels=c("<=50 (urban)", "60 (suburb)", "70-80 (semi-rural)", 
+                                             "100-110 (rural)" , "110+ (Highway)"))
+s_summary <-age_speed_data %>%
+  count(speedzones, `Road User`) %>%
+  group_by(speedzones) %>%
+  mutate(pcte = round(n/sum(n)*100,1),
+         total = sum(n)) %>%
+  ungroup()
+p6 <- ggplot(s_summary, aes(x=speedzones, y=n, fill=`Road User`,
+                                 text=paste("Speed Limit:", speedzones,
+                                            "\nRoad User:", `Road User`,
+                                            "\nProportion:", paste0(pcte, "%")))) +                                       # plotting the graph
+  geom_col(position="fill", width=0.7)+                                                             # Filling different colors for different road users
+  coord_flip()+
+  scale_y_continuous(labels=scales::percent) +                                                       # formatting the y axis labels
+  
+  labs(
+    title="which speed limits are dangerous for whom?",
+    subtitle = 'Pedestrians are affecting more at low speed zones whereas drivers at high-speed zones',
+    x='Speed Zones',
+    y='pecntage of fatalities (%)',
+    caption= "Source: ARDD, Feb 2026",
+     ) +
+  theme_minimal(base_size = 13) +                                                 # setting the base_size=13
+  theme(
+    plot.title          = element_text(face = "bold", size=14),                   #Titile text is setting to bold
+    plot.subtitle       = element_text(color = "grey30", size=8),                 # subtitle text colour to grey
+    plot.caption        = element_text(color ="grey55" , face ="italic", size=8), #Titile text is setting to bold
+    panel.grid.major.x  = element_blank(),                                        # removing grid lines to make it clear
+    legend.position     = "bottom"
+   
+    )
+ggplotly(p6, tooltip = 'text')
+```
+
+## 7. Stacked Bar Graph
+
+### Single vs Multiple crashes at different times of the Day
+
+```{r}
+#Step 1-Removing Null values
+
+clean_ardd_time <- clean_ardd %>%
+  filter(!is.na(Time_Category),
+         !is.na(`Crash Type`)
+         ) %>%                          # remove NA value rows from time_Category
+  count(Time_Category, `Crash Type`)    # counting no of rows on each category
+# Step 2 — Plotting the graph
+ggplot(clean_ardd_time,
+       aes(x    = Time_Category, # ordering bars basedon count
+           y    = n,                         # no of road fatalities
+           fill = `Crash Type`)) +          # different color diffrent category
+
+  geom_bar(stat = "identity", width = 0.8) + # using pre-counted n value, not using default count
+
+  geom_text(aes(label = scales::comma(n)),   # presenting count on each bar
+            position=position_stack(vjust=0.8),
+            size = 3.2,
+            color = "White",
+            fontface="bold")+
+
+  coord_flip() +                             # fliping the coordinates for better visualisation
+
+  scale_fill_manual(values = c(          # Filling different colors for single and multiple
+    "Single"   = "#e74c3c",
+    "Multiple" = "#2c3e50"))+
+
+  labs(
+    title    = "Which crashes are dominant at what times?",
+    x        = "Time Category",
+    y        = "No of Road fatalities",
+    fill     = "Crash Type",
+    caption  = "Source: ARDD, Feb 2026") +
+
+  theme_minimal(base_size = 13) +  # setting base size of the text to 13
+  theme(
+    legend.position   = "bottom",   # crash type legend for single and multiple
+    plot.title        = element_text(face = "bold"), #Titile text is setting to bold
+    panel.grid.major.y= element_blank())      # removing grid lines to make it clear
+
+ggsave("stacked_barchart_7.png", width = 12, height = 8, dpi = 300) #saving the plot using ggsave
+```
+
+## 8. Box plot
+
+### Road Fatalities analysis by Demographics
+
+```{r}
+#Removing the Null values if there are any in age and gender
+ardd_age<-clean_ardd %>%
+  filter(!is.na(Age),
+         !is.na(Gender))
+ggplot(ardd_age, aes(         #plotting the graph using ggplot
+  x=Gender,                 #x-axis represents gender
+  y=Age,                    #y-axis represents Age
+  fill=Gender))+
+  geom_boxplot(             #creates the box plot
+    outlier.alpha = 0.10,   # setting size, alpha and width of the boxes makes faint, small, notch clearly visible respectively
+    outlier.size=1,
+    width=0.35)+
+  
+  stat_summary(
+    fun=mean,            # calculates mean age for both categories separately
+    geom="point",        # point in the both boxes represents means
+    shape=18,            # shape is 18, it means diamond
+    size=4,              #size to 7 to make it clearly visible
+    color="black")+      # stting colour of the mean point to black
+ 
+  scale_fill_manual(values=c(
+   "Male"="#8e44ad",     # male-purple colour
+   "Female"="#f1c40f"))+ #Female-Yellow color
+  labs(
+        title = "Which demographic groups are at more risk?",
+        x        ="Gender",
+        y        ="Age",
+        caption  = "BITRE, Feb 2026",
+        
+    )+
+   theme_minimal(base_size=12)+  #setting base size of the text to 12
+   theme(
+       plot.title=element_text(face= "bold"),             # title textto bold
+       plot.subtitle =element_text(color='grey35',size=12),# subtitle text colour-grey 35 to distinguish with title
+       plot.caption=element_text(color='grey30',size=8)  # caption color grey30
+       )
+     ggsave("Boxplot_8.png", width = 12, height = 8, dpi = 300) # saving the plot as image using ggsave
+  
+```
+
+## 
