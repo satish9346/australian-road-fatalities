@@ -1,0 +1,8 @@
+title: Australian road fatalities data story
+status: in-progress
+date: 2026-10
+summary: Ten linked graphics on 35+ years of Australian road deaths, from the national trend down to who dies, when, and in which speed zones.
+headline_metric: "Generated from data: see figures/findings.md"
+skills: [R, tidyverse, ggplot2, plotly, Data visualisation, Data storytelling]
+image: figures/g05_day_time_heatmap.png
+demo: figures/g05_heatmap_interactive.html
