@@ -72,4 +72,4 @@ Bureau of Infrastructure and Transport Research Economics (BITRE), **Australian 
 ## About
 
 Built by **Satish Kumar Reddy Gajjala** for Data Visualisation (MATH X314), Master of Data Science, University of Adelaide.
-[LinkedIn](https://www.linkedin.com/in/satish-reddy-gajjala-450150234/) · [GitHub](https://github.com/satish9346)
+[LinkedIn](https://www.linkedin.com/in/satish-kumar-reddy-gajjala-450150234/) · [GitHub](https://github.com/satish9346)
